@@ -7,3 +7,4 @@
 # Data:
 
 - Some sample data was provided in the folder /public
+- To test additional files -> use the cat's eye pictures (halpha as nir and oiii as additional)
