@@ -1,6 +1,6 @@
 # Running:
 
-- Requirements: nodejs and react insalled.
+- Requirements: nodejs and react installed.
 - After cloning: `npm install`
 - To run demo: `npm run dev` and access localhost with the indicated port number at the terminal
 
