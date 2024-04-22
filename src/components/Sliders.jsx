@@ -11,6 +11,8 @@ const Sliders = ({
   additionalFiles,
   additionalFilesSliders,
   setAdditionalFilesSliders,
+  resetCanvas,
+  resetAdditionalSliders,
 }) => {
   // handle changes for any slider
   const handleSliderChange = (output, input, value) => {
@@ -36,6 +38,8 @@ const Sliders = ({
   // load default values based on type of slider
   const handleReset = () => {
     setSliderValues(defaultSliders[type]);
+    resetCanvas();
+    resetAdditionalSliders();
   };
 
   return (
@@ -62,7 +66,7 @@ const Sliders = ({
                       ? additionalFilesSliders[type][additionalFile.type][
                           output
                         ]
-                      : null
+                      : ""
                   }
                   onChange={(e) => {
                     handleAdditionalSliderChange(

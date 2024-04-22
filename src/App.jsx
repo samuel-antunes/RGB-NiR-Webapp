@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import FileUpload, { drawImageOnCanvas } from "./components/FileUpload";
 import Collapsible from "./components/Collapsible";
-import convert from "color-convert"; // Import color-convert library
+import convert from "color-convert";
 import Sliders from "./components/Sliders";
 import {
   defaultFalseColoring,
@@ -59,6 +59,39 @@ const App = () => {
   const resultCanvasRef = useRef(null);
   const previewChangeRef = useRef(null);
 
+  const resetAdditionalSliders = () => {
+    setAdditionalFilesSliders((prevValues) => {
+      let newSliders = {
+        linearCombination: {},
+        XYZColoring: {},
+        HSVColoring: {},
+        LABColoring: {},
+      };
+      additionalFiles
+        .map((file) => file.type)
+        .forEach((type) => {
+          newSliders.linearCombination = {
+            ...newSliders.linearCombination,
+            [type]: { red: 0, green: 0, blue: 0 },
+          };
+          newSliders.XYZColoring = {
+            ...newSliders.XYZColoring,
+            [type]: { X: 0, Y: 0, Z: 0 },
+          };
+          newSliders.HSVColoring = {
+            ...newSliders.HSVColoring,
+            [type]: { values: 0 },
+          };
+          newSliders.LABColoring = {
+            ...newSliders.LABColoring,
+            [type]: { values: 0 },
+          };
+        });
+
+      return newSliders;
+    });
+  };
+
   // undo function
   const handleUndo = () => {
     // return if index at the start
@@ -99,7 +132,7 @@ const App = () => {
 
   // helper function to copy data from canvas
   const copyCanvasData = (sourceRef, destinationRef) => {
-    const sourceCanvas = sourceRef.current;
+    const sourceCanvas = sourceRef.current ? sourceRef.current : sourceRef;
     const destinationCanvas = destinationRef.current;
 
     const sourceCtx = sourceCanvas.getContext("2d", {
@@ -482,7 +515,7 @@ const App = () => {
     return matrix;
   }
 
-  // Apply a box filter to the matrix
+  // Function that applies a box filter to a matrix
   function boxFilter(src, r, channels) {
     const width = src[0].length;
     const height = src.length;
@@ -617,7 +650,7 @@ const App = () => {
           const res = meanA[y][x][c] * I + meanB[y][x][c];
           output.data[index + c] = Math.min(Math.max(0, res), 255); // Clamp to [0, 255]
         }
-        output.data[index + 3] = 255; // Alpha channel
+        output.data[index + 3] = 255; // set alpha to full value
       }
     }
     return output;
@@ -638,6 +671,7 @@ const App = () => {
         for (let c = 0; c < channels; c++) {
           // Check for division by zero
           if (mat2[y][x][c] !== 0) {
+            // check how many channels in mat2
             if (mat2[y][x].length !== channels && mat2[y][x].length === 1) {
               result[y][x][c] = mat1[y][x][c] / mat2[y][x][0];
             } else {
@@ -686,6 +720,7 @@ const App = () => {
 
     // Reset it to default
     setSliderValues(defaultSliders[type]);
+    resetAdditionalSliders();
 
     // Get previewData to input it into the history array
     const previewCanvas = previewChangeRef.current;
@@ -697,7 +732,12 @@ const App = () => {
 
     setHistory((prevValues) => [
       ...prevValues.slice(0, currentHistoryIndex + 1),
-      { editType: type, sliderValues: sliderValues, resultData: previewData },
+      {
+        editType: type,
+        sliderValues: sliderValues,
+        resultData: previewData,
+        additionalSliders: additionalFilesSliders,
+      },
     ]);
 
     setCurrentHistoryIndex(currentHistoryIndex + 1);
@@ -707,7 +747,7 @@ const App = () => {
 
   // Helper function to apply edits to hi-res version
   const applyEdit = (editItem) => {
-    const { editType, sliderValues } = editItem;
+    const { editType, sliderValues, additionalSliders } = editItem;
     if (!nirFile || !rgbFile) return;
 
     // getting canvases
@@ -730,6 +770,18 @@ const App = () => {
     let resultData = resultCtx.getImageData(0, 0, width, height);
     let outputData = resultCtx.createImageData(width, height);
 
+    const additionalCtxs = additionalCanvasRefs.map((canvas) =>
+      canvas.getContext("2d", { willReadFrequently: true })
+    );
+    const additionalData = additionalCtxs.map((ctx, index) =>
+      ctx.getImageData(
+        0,
+        0,
+        additionalCanvasRefs[index].width,
+        additionalCanvasRefs[index].height
+      )
+    );
+
     const startTime = performance.now();
 
     // Apply appropriate edit
@@ -739,8 +791,8 @@ const App = () => {
         nirData,
         resultData,
         sliderValues,
-        additionalFilesSliders[editType],
-        additionalFiles
+        additionalSliders[editType],
+        additionalData
       );
     } else if (editType === "HSVColoring") {
       outputData = applyHSVColoring(
@@ -748,8 +800,8 @@ const App = () => {
         nirData,
         resultData,
         sliderValues,
-        additionalFilesSliders[editType],
-        additionalFiles
+        additionalSliders[editType],
+        additionalData
       );
     } else if (editType === "LABColoring") {
       outputData = applyLABColoring(
@@ -757,8 +809,8 @@ const App = () => {
         nirData,
         resultData,
         sliderValues,
-        additionalFilesSliders[editType],
-        additionalFiles
+        additionalSliders[editType],
+        additionalData
       );
     } else if (editType === "Filtering") {
       outputData = applyGuidedFilter(resultData, nirData, sliderValues);
@@ -768,8 +820,8 @@ const App = () => {
         nirData,
         resultData,
         sliderValues,
-        additionalFilesSliders[editType],
-        additionalFiles
+        additionalSliders[editType],
+        additionalData
       );
     }
 
@@ -793,7 +845,14 @@ const App = () => {
     setDisplayLoading(true);
     // Redraw nirCanvas to hi-res version
     await drawImageOnCanvas(URL.createObjectURL(nirFile), nirCanvasRef, false);
-
+    // reference: https://stackoverflow.com/questions/10179815/get-loop-counter-index-using-for-of-syntax-in-javascript
+    for (const [index, file] of additionalFiles.entries()) {
+      await drawImageOnCanvas(
+        URL.createObjectURL(file.file),
+        additionalCanvasRefs[index],
+        false
+      );
+    }
     copyCanvasData(rgbCanvasRef, resultCanvasRef);
 
     // apply all edits to hi-res version
@@ -821,9 +880,20 @@ const App = () => {
     // go back to downsampled version for further edits
     drawImageOnCanvas(URL.createObjectURL(rgbFile), rgbCanvasRef, true);
     drawImageOnCanvas(URL.createObjectURL(nirFile), nirCanvasRef, true);
+    additionalFiles.forEach(async (file, index) => {
+      await drawImageOnCanvas(
+        URL.createObjectURL(file.file),
+        additionalCanvasRefs[index],
+        true
+      );
+    });
     copyCanvasData(previewChangeRef, resultCanvasRef);
     // Hide loading
     setDisplayLoading(false);
+  };
+
+  const resetCanvas = () => {
+    copyCanvasData(resultCanvasRef, previewChangeRef);
   };
 
   // loads initial image
@@ -870,7 +940,25 @@ const App = () => {
       // resize canvas to appropriate size
       const resultCanvas = resultCanvasRef.current;
       const previewCanvas = previewChangeRef.current;
+
+      const resultCtx = resultCanvas.getContext("2d", {
+        willReadFrequently: true,
+      });
+      const previewCtx = resultCanvas.getContext("2d", {
+        willReadFrequently: true,
+      });
+
       const { height, width } = resultCanvas;
+
+      const resultData = resultCtx.getImageData(0, 0, width, height);
+      const previewData = previewCtx.getImageData(0, 0, width, height);
+
+      resultCtx.clearRect(0, 0, width, height);
+      previewCtx.clearRect(0, 0, width, height);
+
+      resultCtx.putImageData(resultData, 0, 0);
+      previewCtx.putImageData(previewData, 0, 0);
+
       const aspectRatio = height / width;
       const displayWidth = window.innerWidth * 0.6;
       const displayHeight = displayWidth * aspectRatio;
@@ -965,9 +1053,8 @@ const App = () => {
             setOpenTool={setOpenTool}
             setSliderValues={setSliderValuesFalseColoring}
             type={"linearCombination"}
-            resetCanvas={() =>
-              copyCanvasData(resultCanvasRef, previewChangeRef)
-            }
+            resetCanvas={resetCanvas}
+            resetAdditionalSliders={resetAdditionalSliders}
           >
             <Sliders
               type={"linearCombination"}
@@ -978,6 +1065,8 @@ const App = () => {
               additionalFiles={additionalFiles}
               additionalFilesSliders={additionalFilesSliders}
               setAdditionalFilesSliders={setAdditionalFilesSliders}
+              resetCanvas={resetCanvas}
+              resetAdditionalSliders={resetAdditionalSliders}
             />
           </Collapsible>
           <Collapsible
@@ -986,9 +1075,8 @@ const App = () => {
             setOpenTool={setOpenTool}
             setSliderValues={setXYZSliders}
             type="XYZColoring"
-            resetCanvas={() =>
-              copyCanvasData(resultCanvasRef, previewChangeRef)
-            }
+            resetCanvas={resetCanvas}
+            resetAdditionalSliders={resetAdditionalSliders}
           >
             <Sliders
               type="XYZColoring"
@@ -999,6 +1087,8 @@ const App = () => {
               additionalFiles={additionalFiles}
               additionalFilesSliders={additionalFilesSliders}
               setAdditionalFilesSliders={setAdditionalFilesSliders}
+              resetCanvas={resetCanvas}
+              resetAdditionalSliders={resetAdditionalSliders}
             />
           </Collapsible>
           <Collapsible
@@ -1007,9 +1097,8 @@ const App = () => {
             setOpenTool={setOpenTool}
             setSliderValues={setSliderValuesHSVColoring}
             type={"HSVColoring"}
-            resetCanvas={() =>
-              copyCanvasData(resultCanvasRef, previewChangeRef)
-            }
+            resetCanvas={resetCanvas}
+            resetAdditionalSliders={resetAdditionalSliders}
           >
             <Sliders
               type={"HSVColoring"}
@@ -1020,6 +1109,8 @@ const App = () => {
               additionalFiles={additionalFiles}
               additionalFilesSliders={additionalFilesSliders}
               setAdditionalFilesSliders={setAdditionalFilesSliders}
+              resetCanvas={resetCanvas}
+              resetAdditionalSliders={resetAdditionalSliders}
             />
           </Collapsible>
           <Collapsible
@@ -1028,9 +1119,8 @@ const App = () => {
             setOpenTool={setOpenTool}
             setSliderValues={setSliderValuesLAB}
             type="LABColoring"
-            resetCanvas={() =>
-              copyCanvasData(resultCanvasRef, previewChangeRef)
-            }
+            resetCanvas={resetCanvas}
+            resetAdditionalSliders={resetAdditionalSliders}
           >
             <Sliders
               type="LABColoring"
@@ -1041,6 +1131,8 @@ const App = () => {
               additionalFiles={additionalFiles}
               additionalFilesSliders={additionalFilesSliders}
               setAdditionalFilesSliders={setAdditionalFilesSliders}
+              resetCanvas={resetCanvas}
+              resetAdditionalSliders={resetAdditionalSliders}
             />
           </Collapsible>
           <Collapsible
@@ -1049,9 +1141,8 @@ const App = () => {
             setOpenTool={setOpenTool}
             setSliderValues={setFilterSettings}
             type="Filtering"
-            resetCanvas={() =>
-              copyCanvasData(resultCanvasRef, previewChangeRef)
-            }
+            resetCanvas={resetCanvas}
+            resetAdditionalSliders={resetAdditionalSliders}
           >
             <Sliders
               type="Filtering"
@@ -1062,6 +1153,8 @@ const App = () => {
               additionalFiles={additionalFiles}
               additionalFilesSliders={additionalFilesSliders}
               setAdditionalFilesSliders={setAdditionalFilesSliders}
+              resetCanvas={resetCanvas}
+              resetAdditionalSliders={resetAdditionalSliders}
             />
           </Collapsible>
 
