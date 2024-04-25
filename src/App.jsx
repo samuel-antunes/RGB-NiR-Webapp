@@ -151,7 +151,8 @@ const App = () => {
 
     destinationCtx.putImageData(sourceData, 0, 0);
     const aspectRatio = height / width;
-    const displayWidth = window.innerWidth * 0.6;
+    const displayWidth =
+      aspectRatio > 1.3 ? window.innerWidth * 0.6 : window.innerWidth * 0.4;
     const displayHeight = displayWidth * aspectRatio;
 
     destinationCanvas.style.width = `${displayWidth}px`;
@@ -253,7 +254,8 @@ const App = () => {
     previewCtx.putImageData(previewData, 0, 0);
 
     const aspectRatio = height / width;
-    const displayWidth = window.innerWidth * 0.6;
+    const displayWidth =
+      aspectRatio > 1.3 ? window.innerWidth * 0.6 : window.innerWidth * 0.4;
     const displayHeight = displayWidth * aspectRatio;
 
     previewCanvas.style.width = `${displayWidth}px`;
@@ -831,7 +833,8 @@ const App = () => {
     resultCtx.putImageData(outputData, 0, 0);
 
     const aspectRatio = height / width;
-    const displayWidth = window.innerWidth * 0.6;
+    const displayWidth =
+      aspectRatio > 1.3 ? window.innerWidth * 0.6 : window.innerWidth * 0.4;
     const displayHeight = displayWidth * aspectRatio;
 
     resultCanvas.style.width = `${displayWidth}px`;
@@ -960,7 +963,8 @@ const App = () => {
       previewCtx.putImageData(previewData, 0, 0);
 
       const aspectRatio = height / width;
-      const displayWidth = window.innerWidth * 0.6;
+      const displayWidth =
+        aspectRatio > 1.3 ? window.innerWidth * 0.6 : window.innerWidth * 0.4;
       const displayHeight = displayWidth * aspectRatio;
 
       resultCanvas.style.width = `${displayWidth}px`;
