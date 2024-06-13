@@ -1,15 +1,6 @@
 # Introduction + demo video:
 
-<table>
-  <tr>
-    <td align="center">
-      <video width="100%" controls>
-        <source src="/public/demo.mp4" type="video/mp4">
-        Your browser does not support the video tag.
-      </video>
-    </td>
-  </tr>
-</table>
+[![Youtube Video](https://img.youtube.com/vi/2M7eh4eoOcU/0.jpg)](https://www.youtube.com/watch?v=2M7eh4eoOcU)
 
 # Running:
 
