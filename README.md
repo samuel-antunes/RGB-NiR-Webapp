@@ -1,3 +1,16 @@
+# Introduction + demo video:
+
+<table>
+  <tr>
+    <td align="center">
+      <video width="100%" controls>
+        <source src="/public/demo.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+    </td>
+  </tr>
+</table>
+
 # Running:
 
 - Requirements: nodejs and react installed.
