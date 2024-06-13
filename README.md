@@ -1,6 +1,10 @@
 # Introduction + demo video:
 
-[![Youtube Video](https://img.youtube.com/vi/2M7eh4eoOcU/0.jpg)](https://www.youtube.com/watch?v=2M7eh4eoOcU)
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=2M7eh4eoOcU">
+    <img src="https://img.youtube.com/vi/2M7eh4eoOcU/0.jpg" alt="Youtube Video" width="100%">
+  </a>
+</p>
 
 # Running:
 
