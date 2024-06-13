@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import "../App.css";
 
 // async function to draw image on canvas
 export const drawImageOnCanvas = async (imageUrl, canvasRef, downsample) => {
@@ -63,6 +64,9 @@ const FileUpload = ({
   // Temp states for errors in upload
   const [uploadError, setUploadError] = useState("");
 
+  const rgbInputRef = useRef(null);
+  const nirInputRef = useRef(null);
+
   // Function to handle upload of files based on type
   const handleUploadFile = (event, type) => {
     const file = event.target.files[0];
@@ -125,37 +129,66 @@ const FileUpload = ({
   return (
     <div>
       <div>
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <label style={{ flex: 1 }}>RGB Image:</label>
+        <div style={{ display: "flex", flexDirection: "row" }}>
+          <label style={{ flex: 1, color: "#efefef" }}>RGB Image:</label>
           <input
             type="file"
             value=""
             onChange={(event) => handleUploadFile(event, "RGB")}
-            style={{ flex: 2, display: !rgbFile ? "block" : "none" }}
+            style={{ display: "none" }}
+            ref={rgbInputRef}
           />
+          <button
+            className="default-button"
+            onClick={() => rgbInputRef.current.click()}
+            style={{ flex: 2, display: !rgbFile ? "block" : "none" }}
+          >
+            Browse...
+          </button>
           <canvas
             id="rgb-canvas"
-            style={{ flex: 2, display: rgbFile ? "block" : "none" }}
+            style={{
+              flex: "0 0 auto",
+              display: rgbFile ? "block" : "none",
+              width: "20px",
+            }}
             height={20}
             ref={rgbCanvasRef}
           ></canvas>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <label style={{ flex: 1 }}>NIR Image:</label>
-
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+          }}
+        >
+          <label style={{ flex: 1, color: "#efefef" }}>NIR Image:</label>
+          <button
+            className="default-button"
+            onClick={() => nirInputRef.current.click()}
+            style={{ flex: 2, display: !nirFile ? "block" : "none" }}
+          >
+            Browse...
+          </button>
+          <canvas
+            id="nir-canvas"
+            style={{
+              flex: "0 0 auto",
+              display: nirFile ? "block" : "none",
+              width: "20px",
+            }}
+            height={20}
+            ref={nirCanvasRef}
+          ></canvas>
           <input
             type="file"
             value=""
             onChange={(event) => handleUploadFile(event, "NIR")}
-            style={{ flex: 2, display: !nirFile ? "block" : "none" }}
+            style={{ display: "none" }}
+            ref={nirInputRef}
           />
-          <canvas
-            id="nir-canvas"
-            style={{ flex: 2, display: nirFile ? "block" : "none" }}
-            height={20}
-            ref={nirCanvasRef}
-          ></canvas>
+
           {additionalFiles.map((additionalFile, index) => {
             return (
               <div key={`${additionalFile.type}-${index}`}>
@@ -173,8 +206,13 @@ const FileUpload = ({
         </div>
 
         <div style={{ display: "flex", flexDirection: "row" }}>
-          <button onClick={handleResetImages}>Reset Images</button>
-          <button onClick={() => setDisplayUploadBox(true)}>
+          <button onClick={handleResetImages} className="default-button">
+            Reset Images
+          </button>
+          <button
+            onClick={() => setDisplayUploadBox(true)}
+            className="default-button"
+          >
             + Add More Files
           </button>
         </div>

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { defaultSliders } from "../utils/defaultSliderValues";
+import "../App.css";
 
 const Collapsible = ({
   children,
@@ -13,7 +14,6 @@ const Collapsible = ({
 }) => {
   // Only display if this is openTool
   const isOpen = openTool === title;
-  const [hover, setHover] = useState(false);
 
   const handleClick = () => {
     if (openTool === title) {
@@ -29,22 +29,7 @@ const Collapsible = ({
 
   return (
     <div style={{ width: "100%" }}>
-      <button
-        onClick={handleClick}
-        style={{
-          width: "100%",
-          padding: "10px",
-          textAlign: "left",
-          backgroundColor: !hover ? "#f0f0f0" : "#e9e9e9",
-          border: "none",
-          cursor: "pointer",
-          outline: "none",
-          borderBottom: "1px solid #ccc",
-          transition: "background-color 0.3s ease",
-        }}
-        onMouseEnter={() => setHover(true)}
-        onMouseLeave={() => setHover(false)}
-      >
+      <button onClick={handleClick} className="default-button">
         {title}{" "}
         <span
           style={{

@@ -11,6 +11,7 @@ import {
   defaultSliders,
   defaultXYZColoring,
 } from "./utils/defaultSliderValues";
+import "./App.css";
 
 const App = () => {
   // arrays to track additional files and canvasRefs
@@ -52,6 +53,8 @@ const App = () => {
   // states to track original files
   const [rgbFile, setRgbFile] = useState(null);
   const [nirFile, setNirFile] = useState(null);
+
+  const [zoomScale, setZoomScale] = useState(1);
 
   // pointers to the canvases
   const nirCanvasRef = useRef(null);
@@ -152,7 +155,7 @@ const App = () => {
     destinationCtx.putImageData(sourceData, 0, 0);
     const aspectRatio = height / width;
     const displayWidth =
-      aspectRatio > 1.3 ? window.innerWidth * 0.6 : window.innerWidth * 0.4;
+      aspectRatio > 1.3 ? window.innerWidth * 0.5 : window.innerWidth * 0.3;
     const displayHeight = displayWidth * aspectRatio;
 
     destinationCanvas.style.width = `${displayWidth}px`;
@@ -972,44 +975,44 @@ const App = () => {
       previewCanvas.style.width = `${displayWidth}px`;
       previewCanvas.style.height = `${displayHeight}px`;
     };
+    const handleWheel = (event) => {
+      event.preventDefault();
+      const scaleAdjustment = event.deltaY * -0.005; 
+      setZoomScale((prevScale) => Math.max(prevScale - scaleAdjustment, 0.1));
+    };
+
+    const previewCanvas = previewChangeRef.current;
+    previewCanvas.addEventListener("wheel", handleWheel);
+    const resultCanvas = resultCanvasRef.current;
+    resultCanvas.addEventListener("wheel", handleWheel);
+
     window.addEventListener("resize", handleResizeCanvas);
     return () => {
       window.removeEventListener("resize", handleResizeCanvas);
+
+      previewCanvas.removeEventListener("wheel", handleWheel);
+      resultCanvas.removeEventListener("wheel", handleWheel);
     };
   }, []);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-      <div style={{ display: "flex", flex: 1 }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            flex: 1,
-            backgroundColor: "#b9b8b8",
-            color: "#000",
-            position: "relative",
-          }}
-        >
+    <div className="container">
+      <div className="main-content">
+        <div className="canvas-container">
           <canvas
             id="preview-canvas"
             ref={previewChangeRef}
-            style={{ zIndex: 10, position: "absolute" }}
+            className="preview-canvas"
+            style={{ transform: `scale(${zoomScale})` }}
           ></canvas>
           <canvas
             id="result-canvas"
             ref={resultCanvasRef}
-            style={{ zIndex: 1, position: "absolute", display: "none" }}
+            className="result-canvas"
+            style={{ transform: `scale(${zoomScale})` }}
           ></canvas>
         </div>
-        <div
-          style={{
-            width: "300px",
-            backgroundColor: "#e7e7e7",
-            padding: "20px",
-          }}
-        >
+        <div className="control-panel">
           <FileUpload
             rgbFile={rgbFile}
             setRgbFile={setRgbFile}
@@ -1028,25 +1031,20 @@ const App = () => {
             additionalCanvasRefs={additionalCanvasRefs}
             setAdditionalCanvasRefs={setAdditionalCanvasRefs}
           />
-          <div
-            style={{
-              left: "10px",
-              top: "10px",
-              display: "flex",
-              flexDirection: "row",
-            }}
-          >
+          <div className="history-buttons">
             <button
               onClick={handleUndo}
               disabled={currentHistoryIndex === -1}
-              style={{ width: "50%" }}
+              className="default-button"
+              style={{ textAlign: "center" }}
             >
               {"↺"}
             </button>
             <button
               onClick={handleRedo}
               disabled={currentHistoryIndex === history.length - 1}
-              style={{ width: "50%" }}
+              className="default-button"
+              style={{ textAlign: "center" }}
             >
               {"↻"}
             </button>
@@ -1164,6 +1162,7 @@ const App = () => {
 
           <button
             onClick={downloadImage}
+            className="default-button"
             style={{ padding: "10px 20px", marginTop: "20px" }}
           >
             Download Result Image

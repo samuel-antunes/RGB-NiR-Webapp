@@ -43,7 +43,9 @@ const Sliders = ({
   };
 
   return (
-    <div>
+    <div
+      style={{ padding: "10px", color: "#efefef", backgroundColor: "#484848" }}
+    >
       <label></label>
       {Object.keys(sliderValues).map((output) => (
         <div key={output}>
@@ -97,8 +99,12 @@ const Sliders = ({
         </div>
       ))}
       <div style={{ display: "flex", flexDirection: "row" }}>
-        <button onClick={handleReset}>Reset Values</button>
-        <button onClick={() => finalizeEdit(type)}>Apply edit</button>
+        <button onClick={handleReset} className="default-button">
+          Reset Values
+        </button>
+        <button onClick={() => finalizeEdit(type)} className="default-button">
+          Apply edit
+        </button>
       </div>
     </div>
   );
