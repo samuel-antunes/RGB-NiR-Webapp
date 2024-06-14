@@ -3,6 +3,7 @@
   flex-direction: column;
   height: 100vh;
   overflow-y: scroll;
+  overflow-x: hidden;
 }
 
 .main-content {
@@ -71,6 +72,10 @@
 
 .default-button:hover {
   background-color: #727272;
+}
+
+.default-button:disabled {
+  background-color: #797979;
 }
 
 .download-button {

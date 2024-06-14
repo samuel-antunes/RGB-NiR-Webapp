@@ -977,7 +977,7 @@ const App = () => {
     };
     const handleWheel = (event) => {
       event.preventDefault();
-      const scaleAdjustment = event.deltaY * -0.005; 
+      const scaleAdjustment = event.deltaY * 0.005;
       setZoomScale((prevScale) => Math.max(prevScale - scaleAdjustment, 0.1));
     };
 
